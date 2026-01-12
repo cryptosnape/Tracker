@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frachtkosten-Rechner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background-attachment: fixed;
+            padding: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse"><path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="1200" height="800" fill="url(%23grid)"/></svg>');
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            background: linear-gradient(135deg, #e94560 0%, #ff6b35 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(233, 69, 96, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        header p {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: rgba(15, 52, 96, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 0;
+            border-bottom: 2px solid #e94560;
+            display: flex;
+            gap: 0;
+            position: relative;
+            z-index: 9;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 15px 25px;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: rgba(233, 69, 96, 0.2);
+            border-bottom-color: #e94560;
+            color: #ff6b35;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 5;
+            padding: 30px 20px;
+            min-height: calc(100vh - 140px);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.97);
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 35px;
+            backdrop-filter: blur(5px);
+        }
+
+        h2 {
+            color: #1a1a2e;
+            margin-bottom: 25px;
+            font-size: 24px;
+            border-bottom: 3px solid #e94560;
+            padding-bottom: 12px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #1a1a2e;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+            color: #1a1a2e;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #e94560;
+            box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+        }
+
+        .address-results {
+            border: 2px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            background: white;
+            position: absolute;
+            width: 100%;
+            top: 100%;
+            left: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .address-result-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            color: #333;
+        }
+
+        .address-result-item:hover {
+            background: #f5f5f5;
+            color: #e94560;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e94560 0%, #ff6b35 100%);
+            color: white;
+            border: none;
+            padding: 16px 35px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 25px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(233, 69, 96, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .result-box {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e8f4f8 100%);
+            border-radius: 12px;
+            display: none;
+            border-left: 5px solid #e94560;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(26, 26, 46, 0.1);
+            align-items: center;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            font-size: 22px;
+            font-weight: 700;
+            color: #e94560;
+            margin-top: 15px;
+            padding-top: 20px;
+            border-top: 2px solid #e94560;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .result-value {
+            color: #0f3460;
+            font-weight: 700;
+        }
+
+        .loading {
+            text-align: center;
+            color: #e94560;
+            display: none;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fee;
+            border-left: 4px solid #e94560;
+            border-radius: 8px;
+            color: #c33;
+            padding: 15px;
+            display: none;
+            margin-top: 20px;
+            font-weight: 500;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            border-left: 4px solid #e94560;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #1a1a2e;
+        }
+
+        .info-box strong {
+            color: #e94560;
+        }
+
+        .result-breakdown {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(233, 69, 96, 0.1);
+            border-radius: 8px;
+            border: 1px solid #e94560;
+        }
+
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #0f3460;
+        }
+
+        .breakdown-row.total {
+            font-weight: 700;
+            font-size: 16px;
+            color: #e94560;
+            border-top: 2px solid #e94560;
+            padding-top: 12px;
+            margin-top: 12px;
+        }
+
+        .favorite-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .favorite-btn {
+            background: rgba(233, 69, 96, 0.1);
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .favorite-btn:hover {
+            background: #e94560;
+            color: white;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(233, 69, 96, 0.9);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(233, 69, 96, 1);
+            transform: scale(1.05);
+        }
+
+        body.light-theme {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 50%, #ddd 100%);
+        }
+
+        body.light-theme .container {
+            background: rgba(30, 30, 30, 0.95);
+            color: white;
+        }
+
+        body.light-theme h2 {
+            color: white;
+            border-bottom-color: #ff6b35;
+        }
+
+        body.light-theme label {
+            color: #f0f0f0;
+        }
+
+        body.light-theme input,
+        body.light-theme select {
+            background: #f0f0f0;
+            color: #1a1a2e;
+            border-color: #999;
+        }
+
+        body.light-theme .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f0f0f0;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            nav {
+                flex-wrap: wrap;
+            }
+
+            nav a {
+                flex: 1 0 50%;
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            .favorite-buttons {
+                gap: 5px;
+                margin-bottom: 10px;
+            }
+
+            .favorite-btn {
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            .breakdown-row {
+                font-size: 13px;
+                padding: 6px 0;
+            }
+
+            .result-item {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="themeToggle" class="theme-toggle">🌙 Dark</button>
+
+    <header>
+        <h1>🚚 Frachtkosten-Rechner</h1>
+        <p>Berechnung der Transportkosten für Logistik und Warenwirtschaft</p>
+    </header>
+
+    <nav>
+        <a href="#" class="nav-item active" data-section="calculator">💼 Kalkulator</a>
+        <a href="#" class="nav-item" data-section="info">ℹ️ Information</a>
+        <a href="#" class="nav-item" data-section="faq">❓ FAQ</a>
+    </nav>
+
+    <div class="main-content">
+        <div class="container" id="calculator-section">
+            <h2>Frachtkosten berechnen</h2>
+
+            <div class="info-box">
+                <strong>ℹ️ Hinweis:</strong> Die Preise gelten für Transporte innerhalb Deutschlands. Bei internationalen Fahrten oder Sonderfahrten kontaktieren Sie uns bitte direkt.
+            </div>
+
+            <form id="freightForm">
+                <div class="form-group">
+                    <label for="startAddress">Abgangsort (Adresse oder Unternehmen)</label>
+                    <input type="text" id="startAddress" placeholder="Crown Gabelstapler Heppenheim oder Adresse eingeben" value="Crown Gabelstapler Heppenheim, Hessen" required>
+                    <div id="startResults" class="address-results"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="endAddress">Bestimmungsort (Adresse oder Unternehmen)</label>
+                    <input type="text" id="endAddress" placeholder="z.B. Straße 1, 60311 Frankfurt oder Unternehmensname" required>
+                    <div id="endResults" class="address-results"></div>
+                </div>
+
+                <div class="favorite-buttons" id="favoriteButtons"></div>
+
+                <div class="form-group">
+                    <label for="category">1. Gerätekategorie auswählen</label>
+                    <select id="category" required>
+                        <option value="">-- Kategorie wählen --</option>
+                        <option value="small-hubs">Kleine Hubwagen (150-600 kg)</option>
+                        <option value="fg-counterweight">Fahrerstand-Gegengewichtstapler (36V/48V)</option>
+                        <option value="tr-counterweight">Dreirad-Gegengewichtstapler (48V)</option>
+                        <option value="fr-counterweight">Vierrad-Gegengewichtstapler (48V)</option>
+                        <option value="picker-highstack">Kommissionierer & Gabelhubwagen (24V)</option>
+                        <option value="submast">Schubmaststapler ESR (48V) ⚠️</option>
+                        <option value="turret">Hochregalstapler TSP (80V) ⚠️</option>
+                        <option value="dualstack">Doppelstock-Hochhubwagen (24V) ⚠️</option>
+                        <option value="c-series">C-Serie Gasstapler (Treibgas/80V) ⚠️</option>
+                        <option value="wj-wave">WJ & Wave Spezial (Pauschal 150€) 📦</option>
+                        <option value="manual">Gewicht manuell eingeben</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="equipment">2. Gerät/Modell auswählen</label>
+                    <select id="equipment" required disabled>
+                        <option value="">-- Erst Kategorie wählen --</option>
+                    </select>
+                </div>
+
+                <div class="two-column">
+                    <div class="form-group" id="manualWeightGroup" style="display: none;">
+                        <label for="manualWeight">Gewicht manuell eingeben (kg)</label>
+                        <input type="number" id="manualWeight" placeholder="z.B. 2500" min="100" max="23000" step="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="height">Bauhöhe (optional)</label>
+                        <select id="height">
+                            <option value="0">Standard (< 3,01 m)</option>
+                            <option value="125">ab 3,01 m (+125 €)</option>
+                            <option value="250">ab 3,41 m (+250 €)</option>
+                            <option value="375">ab 3,71 m (+375 €)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn">Kosten berechnen</button>
+            </form>
+
+            <div class="loading" id="loading">
+                <p>⏳ Berechne Entfernung und Kosten...</p>
+            </div>
+
+            <div class="error" id="error"></div>
+
+            <div class="result-box" id="resultBox">
+                <div class="result-item">
+                    <span class="result-label">Transportstrecke:</span>
+                    <span class="result-value" id="routeInfo"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Entfernung:</span>
+                    <span class="result-value" id="distance"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Gewicht:</span>
+                    <span class="result-value" id="weightDisplay"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Basispreis:</span>
+                    <span class="result-value" id="basePrice"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Zuschlag Bauhöhe:</span>
+                    <span class="result-value" id="heightSurcharge"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">💰 Gesamtpreis:</span>
+                    <span class="result-value" id="totalPrice"></span>
+                </div>
+                <div class="result-breakdown" id="resultBreakdown">
+                    <div class="breakdown-row">
+                        <span>Grundpreis (Gewicht + Entfernung):</span>
+                        <span id="breakdownBase">0 €</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>Bauhöhe-Zuschlag:</span>
+                        <span id="breakdownHeight">0 €</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>Spezial-Gebühr (WJ/Wave):</span>
+                        <span id="breakdownFee">0 €</span>
+                    </div>
+                    <div class="breakdown-row total">
+                        <span>💰 Gesamtpreis:</span>
+                        <span id="breakdownTotal">0 €</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container" id="info-section" style="display: none;">
+            <h2>Informationen zur Frachtberechnung</h2>
+            <div class="info-box">
+                <h3 style="color: #e94560; margin-top: 0;">Wie funktioniert der Rechner?</h3>
+                <p>Der Frachtrechner basiert auf einer standardisierten Preismatrix, die folgende Faktoren berücksichtigt:</p>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li><strong>Gewichtsklasse:</strong> Das Gesamtgewicht der Güter (Stapler + Batterie) bestimmt die Grundgebühr</li>
+                    <li><strong>Entfernung:</strong> Die tatsächliche Fahrtstrecke zwischen Abgangs- und Bestimmungsort</li>
+                    <li><strong>Bauhöhe:</strong> Zusatzgebühren für Geräte über 3 Meter Höhe</li>
+                </ul>
+                <p style="margin-top: 15px;"><strong>⚡ Hinweis:</strong> Bei Elektrostaplern sind die Gewichte der Standardbatterien bereits im Gesamtgewicht inkludiert. Die Batterien werden grundsätzlich mit transportiert. Die angegebenen Geräte entsprechen dem aktuellen Crown Produktportfolio für Deutschland. Alle Preise gelten nur für Transporte innerhalb Deutschlands.</p>
+            </div>
+        </div>
+
+        <div class="container" id="faq-section" style="display: none;">
+            <h2>Häufig gestellte Fragen</h2>
+            <div class="info-box">
+                <p><strong>F: Wie wird die Entfernung berechnet?</strong><br>
+                A: Wir nutzen die tatsächliche Straßenentfernung zwischen den eingegebenen Adressen basierend auf kartografischen Daten.</p>
+                
+                <p style="margin-top: 15px;"><strong>F: Gelten die Preise auch außerhalb Deutschlands?</strong><br>
+                A: Nein, die angezeigten Preise gelten nur innerhalb Deutschlands. Für Exporte oder Importe kontaktieren Sie uns bitte direkt.</p>
+                
+                <p style="margin-top: 15px;"><strong>F: Kann ich Rücklädigungen buchen?</strong><br>
+                A: Ja, Rückladigungen sind mit 70% Rabatt möglich. Bitte kontaktieren Sie uns für weitere Details.</p>
+                
+                <p style="margin-top: 15px;"><strong>F: Was ist mit zusätzlichen Wartezeiten?</strong><br>
+                A: Zusätzliche Arbeiten und Wartezeiten werden mit 40€ pro halbe Stunde berechnet.</p>
+
+                <p style="margin-top: 15px;"><strong>F: Wie funktioniert die Preisgestaltung für WJ und Wave?</strong><br>
+                A: WJ- und Wave-Geräte kosten pauschal 150€ pro Transport, unabhängig von Entfernung oder Gewicht. Zusatzzuschläge (z.B. Bauhöhe) werden addiert.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = item.dataset.section;
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                document.querySelectorAll('[id$="-section"]').forEach(s => s.style.display = 'none');
+                document.getElementById(section + '-section').style.display = 'block';
+            });
+        });
+
+        const priceTable = {
+            300: { 30: 120, 50: 140, 100: 160, 150: 180, 300: 240, 450: 300, 600: 360 },
+            600: { 30: 130, 50: 155, 100: 180, 150: 210, 300: 280, 450: 350, 600: 420 },
+            1500: { 30: 150, 50: 180, 100: 200, 150: 230, 300: 340, 450: 400, 600: 480 },
+            2500: { 30: 165, 50: 200, 100: 240, 150: 280, 300: 420, 450: 520, 600: 640 },
+            3000: { 30: 160, 50: 190, 100: 270, 150: 400, 300: 540, 450: 670, 600: 870 },
+            3500: { 30: 175, 50: 210, 100: 290, 150: 420, 300: 560, 450: 700, 600: 900 },
+            5000: { 30: 180, 50: 220, 100: 340, 150: 470, 300: 630, 450: 755, 600: 910 },
+            7500: { 30: 200, 50: 260, 100: 370, 150: 540, 300: 700, 450: 870, 600: 960 },
+            10000: { 30: 230, 50: 280, 100: 430, 150: 605, 300: 750, 450: 935, 600: 1110 },
+            23000: { 30: 280, 50: 350, 100: 480, 150: 640, 300: 830, 450: 1040, 600: 1175 }
+        };
+
+        let startCoords = null;
+        let endCoords = null;
+        let debounceTimer;
+
+        async function searchAddress(query, resultsDiv) {
+            if (query.length < 3) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Deutschland')}&limit=5&addressdetails=1&timeout=5`
+                );
+                const results = await response.json();
+
+                if (results.length > 0) {
+                    resultsDiv.innerHTML = '';
+                    results.forEach(result => {
+                        const div = document.createElement('div');
+                        div.className = 'address-result-item';
+                        div.textContent = result.display_name;
+                        div.onclick = () => selectAddress(result, resultsDiv);
+                        resultsDiv.appendChild(div);
+                    });
+                    resultsDiv.style.display = 'block';
+                } else {
+                    resultsDiv.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Fehler bei der Adresssuche:', error);
+            }
+        }
+
+        function selectAddress(result, resultsDiv) {
+            const input = resultsDiv.previousElementSibling;
+            input.value = result.display_name;
+
+            if (resultsDiv.id === 'startResults') {
+                startCoords = { lat: parseFloat(result.lat), lon: parseFloat(result.lon) };
+            } else {
+                endCoords = { lat: parseFloat(result.lat), lon: parseFloat(result.lon) };
+            }
+
+            resultsDiv.style.display = 'none';
+        }
+
+        document.getElementById('startAddress').addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                searchAddress(e.target.value, document.getElementById('startResults'));
+            }, 300);
+        });
+
+        document.getElementById('endAddress').addEventListener('input', (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                searchAddress(e.target.value, document.getElementById('endResults'));
+            }, 300);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.form-group')) {
+                document.querySelectorAll('.address-results').forEach(div => {
+                    div.style.display = 'none';
+                });
+            }
+        });
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function getPriceForDistance(weight, distance) {
+            const distanceRanges = [30, 50, 100, 150, 300, 450, 600];
+            const weightClasses = [300, 600, 1500, 2500, 3000, 3500, 5000, 7500, 10000, 23000];
+
+            let selectedWeight = weightClasses[0];
+            for (let wc of weightClasses) {
+                if (weight <= wc) {
+                    selectedWeight = wc;
+                    break;
+                }
+            }
+
+            if (weight > 23000) {
+                selectedWeight = 23000;
+            }
+
+            for (let range of distanceRanges) {
+                if (distance <= range) {
+                    return priceTable[selectedWeight][range];
+                }
+            }
+
+            return priceTable[selectedWeight][600];
+        }
+
+        let isDarkTheme = true;
+        const themeToggle = document.getElementById('themeToggle');
+        
+        themeToggle.addEventListener('click', () => {
+            isDarkTheme = !isDarkTheme;
+            document.body.classList.toggle('light-theme');
+            themeToggle.textContent = isDarkTheme ? '🌙 Dark' : '☀️ Light';
+            localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+        });
+
+        if (localStorage.getItem('theme') === 'light') {
+            isDarkTheme = false;
+            document.body.classList.add('light-theme');
+            themeToggle.textContent = '☀️ Light';
+        }
+
+        function saveFavorite(start, end) {
+            let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            const newFav = { start, end, timestamp: Date.now() };
+            
+            favorites = favorites.filter(f => !(f.start === start && f.end === end));
+            favorites.unshift(newFav);
+            favorites = favorites.slice(0, 5);
+            
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            loadFavorites();
+        }
+
+        function loadFavorites() {
+            const favDiv = document.getElementById('favoriteButtons');
+            const favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+            
+            favDiv.innerHTML = '';
+            if (favorites.length === 0) return;
+
+            const title = document.createElement('small');
+            title.textContent = '⭐ Zuletzt benutzte Routen: ';
+            title.style.display = 'block';
+            title.style.marginBottom = '10px';
+            title.style.color = '#e94560';
+            favDiv.appendChild(title);
+
+            favorites.forEach((fav) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'favorite-btn';
+                btn.textContent = `${fav.start.split(',')[0]} → ${fav.end.split(',')[0]}`;
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    document.getElementById('startAddress').value = fav.start;
+                    document.getElementById('endAddress').value = fav.end;
+                    searchAddress(fav.start, document.getElementById('startResults'));
+                    searchAddress(fav.end, document.getElementById('endResults'));
+                };
+                favDiv.appendChild(btn);
+            });
+        }
+
+        function validateWeight(weight) {
+            if (weight > 5000) {
+                return '⚠️ Warnung: Gewicht > 5 Tonnen. Preis ist Richtpreis. Kontaktieren Sie uns für genaues Angebot.';
+            }
+            return null;
+        }
+
+        const equipmentModels = {
+            "small-hubs": [
+                { name: "WJ 50 - 1.2 t (137 kg)", value: 137 },
+                { name: "WJ 50 - 1.5 t (151 kg)", value: 151 },
+                { name: "WP 3210 - 1.6 t (279 kg)", value: 279 },
+                { name: "WP 3215/3220 - 1.6/2.0 t (315 kg)", value: 315 },
+                { name: "WF 3200 - 1.0 t (598 kg)", value: 598 }
+            ],
+            "fg-counterweight": [
+                { name: "RC 5735 - 1.5 t (36V) (2.690 kg)", value: 2690 },
+                { name: "RC 5715 - 1.5 t (36V) (2.880 kg)", value: 2880 },
+                { name: "RC 5725 - 1.5 t (36V) (2.900 kg)", value: 2900 },
+                { name: "RC 5745 - 1.8 t (36V) (2.930 kg)", value: 2930 },
+                { name: "RC 5530/35 - 1.5 t (48V) (2.690 kg)", value: 2690 },
+                { name: "RC 5510/15 - 1.5 t (48V) (2.880 kg)", value: 2880 },
+                { name: "RC 5520/25 - 1.5 t (48V) (2.900 kg)", value: 2900 },
+                { name: "RC 5540/45 - 1.8 t (48V) (2.930 kg)", value: 2930 }
+            ],
+            "tr-counterweight": [
+                { name: "SCT 6210 - 1.3 t (2.420 kg)", value: 2420 },
+                { name: "SCT 6220 - 1.3/1.6 t (2.528 kg)", value: 2528 },
+                { name: "SCT 6240 - 1.6/1.8 t (2.602 kg)", value: 2602 },
+                { name: "SCT 6260 - 1.8/2.0 t (2.699 kg)", value: 2699 }
+            ],
+            "fr-counterweight": [
+                { name: "SCF 6240 - 1.6/1.8 t (2.570 kg)", value: 2570 },
+                { name: "SCF 6260 - 1.8/2.0 t (2.767 kg)", value: 2767 },
+                { name: "FC 5225 - 2.0/2.5 t Premium (3.266 kg)", value: 3266 },
+                { name: "FC 5200 - 2.0/2.5 t Premium (3.282 kg)", value: 3282 }
+            ],
+            "picker-highstack": [
+                { name: "GPC 3020-2.0 - 2.0 t (837 kg)", value: 837 },
+                { name: "GPC 3040-2.0 - 2.0 t (848 kg)", value: 848 },
+                { name: "GPC 3050-2.5 - 2.5 t (953 kg)", value: 953 },
+                { name: "GPC 3060-2.7 - 2.7 t (1.089 kg)", value: 1089 },
+                { name: "WT 3020-2.0 - 2.0 t (551 kg)", value: 551 },
+                { name: "WT 3040-2.0 - 2.0 t (556 kg)", value: 556 },
+                { name: "WT 3060-2.5 - 2.5 t (558 kg)", value: 558 }
+            ],
+            "submast": [
+                { name: "ESR 1200-1.4 - 1.4 t (3.250 kg) ⚠️", value: 3250 },
+                { name: "ESR 1200-1.6 - 1.6 t (3.450 kg) ⚠️", value: 3450 },
+                { name: "ESR 1260-1.4 - 1.4 t (3.350 kg) ⚠️", value: 3350 },
+                { name: "ESR 1260-2.0 - 2.0 t (3.860 kg) ⚠️", value: 3860 }
+            ],
+            "turret": [
+                { name: "TSP 1500-1.0 - 1.0 t (6.800 kg) ⚠️", value: 6800 },
+                { name: "TSP 1500-1.25 - 1.25 t (7.500 kg) ⚠️", value: 7500 },
+                { name: "TSP 1500-1.5 - 1.5 t (8.500 kg) ⚠️", value: 8500 }
+            ],
+            "dualstack": [
+                { name: "DS 3020-2.0 - 2.0 t (740 kg) ⚠️", value: 740 },
+                { name: "DS 3040-2.0 - 2.0 t (853 kg) ⚠️", value: 853 },
+                { name: "DT 3020-2.0 - 2.0 t (830 kg) ⚠️", value: 830 },
+                { name: "DT 3040-2.0 - 2.0 t (900 kg) ⚠️", value: 900 },
+                { name: "DT 3050-2.0 - 2.0 t (1.000 kg) ⚠️", value: 1000 }
+            ],
+            "c-series": [
+                { name: "C-5 2.0 - 2.0 t (3.905 kg) Treibgas", value: 3905 },
+                { name: "C-5 2.5 - 2.5 t (4.280 kg) Treibgas", value: 4280 },
+                { name: "C-5 3.0 - 3.0 t (5.060 kg) Treibgas", value: 5060 },
+                { name: "C-B 2.5 - 2.5 t (3.485 kg) 80V", value: 3485 },
+                { name: "C-B 3.0 - 3.0 t (3.750 kg) 80V", value: 3750 },
+                { name: "C-B 3.5 - 3.5 t (3.920 kg) 80V", value: 3920 },
+                { name: "C-B 4.0 - 4.0 t (4.852 kg) 80V", value: 4852 },
+                { name: "C-B 4.5 - 4.5 t (5.267 kg) 80V", value: 5267 },
+                { name: "C-B 5.0 - 5.0 t (5.603 kg) 80V", value: 5603 },
+                { name: "C-G 3.0/3.5 - 3.0-3.5 t (5.790 kg) Treibgas ⚠️", value: 5790 },
+                { name: "C-G 3.5/4.5 - 3.5-4.5 t (6.200 kg) Treibgas ⚠️", value: 6200 },
+                { name: "C-G 3.5/5.5 - 3.5-5.5 t (6.500 kg) Treibgas ⚠️", value: 6500 }
+            ],
+            "wj-wave": [
+                { name: "WJ 50 - 1.2 t (137 kg) 📦 150€", value: 137 },
+                { name: "WJ 50 - 1.5 t (151 kg) 📦 150€", value: 151 },
+                { name: "WAV 60 - Kommissionierer (645 kg) 📦 150€", value: 645 }
+            ]
+        };
+
+        document.getElementById('category').addEventListener('change', (e) => {
+            const category = e.target.value;
+            const equipmentSelect = document.getElementById('equipment');
+            const manualWeightGroup = document.getElementById('manualWeightGroup');
+
+            equipmentSelect.innerHTML = '<option value="">-- Wählen Sie ein Modell --</option>';
+            equipmentSelect.disabled = true;
+            manualWeightGroup.style.display = 'none';
+            document.getElementById('manualWeight').value = '';
+
+            if (category === 'manual') {
+                manualWeightGroup.style.display = 'block';
+                document.getElementById('manualWeight').focus();
+                equipmentSelect.disabled = true;
+                equipmentSelect.value = '';
+            } else if (category && equipmentModels[category]) {
+                equipmentSelect.disabled = false;
+                equipmentModels[category].forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.value;
+                    option.textContent = model.name;
+                    equipmentSelect.appendChild(option);
+                });
+            }
+        });
+
+        document.getElementById('equipment').addEventListener('change', (e) => {
+            const manualWeightGroup = document.getElementById('manualWeightGroup');
+            const manualWeight = document.getElementById('manualWeight');
+            
+            manualWeightGroup.style.display = 'none';
+            manualWeight.value = '';
+        });
+
+        window.addEventListener('load', () => {
+            const startAddressInput = document.getElementById('startAddress');
+            searchAddress(startAddressInput.value, document.getElementById('startResults'));
+            setTimeout(() => {
+                if (!startCoords) {
+                    startCoords = { lat: 49.6361, lon: 8.6397 };
+                }
+            }, 1000);
+            loadFavorites();
+        });
+
+        document.getElementById('freightForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const errorDiv = document.getElementById('error');
+            const loadingDiv = document.getElementById('loading');
+            const resultBox = document.getElementById('resultBox');
+            const startAddressInput = document.getElementById('startAddress');
+            const endAddressInput = document.getElementById('endAddress');
+            const equipmentSelect = document.getElementById('equipment');
+            const manualWeight = document.getElementById('manualWeight');
+
+            errorDiv.style.display = 'none';
+            resultBox.style.display = 'none';
+
+            if (!startAddressInput.value.trim()) {
+                errorDiv.textContent = '⚠️ Fehler: Bitte geben Sie eine Startadresse ein.';
+                errorDiv.style.display = 'block';
+                startAddressInput.focus();
+                return;
+            }
+
+            if (!startCoords) {
+                errorDiv.textContent = '⚠️ Fehler: Startadresse nicht erkannt. Bitte wählen Sie eine Adresse aus den Vorschlägen.';
+                errorDiv.style.display = 'block';
+                startAddressInput.focus();
+                return;
+            }
+
+            if (!endAddressInput.value.trim()) {
+                errorDiv.textContent = '⚠️ Fehler: Bitte geben Sie eine Zieladresse ein.';
+                errorDiv.style.display = 'block';
+                endAddressInput.focus();
+                return;
+            }
+
+            if (!endCoords) {
+                errorDiv.textContent = '⚠️ Fehler: Zieladresse nicht erkannt. Bitte wählen Sie eine Adresse aus den Vorschlägen.';
+                errorDiv.style.display = 'block';
+                endAddressInput.focus();
+                return;
+            }
+
+            const sameLocation = Math.abs(startCoords.lat - endCoords.lat) < 0.001 && 
+                                 Math.abs(startCoords.lon - endCoords.lon) < 0.001;
+            if (sameLocation) {
+                errorDiv.textContent = '⚠️ Fehler: Start- und Zielort sind identisch. Bitte unterschiedliche Orte angeben.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            let weight = 0;
+            if (equipmentSelect.value === 'manual') {
+                weight = parseInt(manualWeight.value);
+                if (!weight || weight < 100 || weight > 23000) {
+                    errorDiv.textContent = '⚠️ Fehler: Bitte geben Sie ein Gewicht zwischen 100 und 23.000 kg ein.';
+                    errorDiv.style.display = 'block';
+                    manualWeight.focus();
+                    return;
+                }
+            } else if (equipmentSelect.value) {
+                weight = parseInt(equipmentSelect.value);
+            } else {
+                errorDiv.textContent = '⚠️ Fehler: Bitte wählen Sie ein Flurförderzeug aus.';
+                errorDiv.style.display = 'block';
+                equipmentSelect.focus();
+                return;
+            }
+
+            if (!weight || weight <= 0) {
+                errorDiv.textContent = '⚠️ Fehler: Bitte wählen Sie ein gültiges Gerät oder Gewicht aus.';
+                errorDiv.style.display = 'block';
+                equipmentSelect.focus();
+                return;
+            }
+
+            const heightSurcharge = parseInt(document.getElementById('height').value);
+
+            loadingDiv.style.display = 'block';
+
+            try {
+                const distance = calculateDistance(
+                    startCoords.lat, startCoords.lon,
+                    endCoords.lat, endCoords.lon
+                );
+
+                if (distance < 1) {
+                    loadingDiv.style.display = 'none';
+                    errorDiv.textContent = '⚠️ Fehler: Die Entfernung ist zu kurz (< 1 km). Bitte gültige Orte angeben.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                if (distance > 1000) {
+                    loadingDiv.style.display = 'none';
+                    errorDiv.textContent = '⚠️ Warnung: Die Entfernung beträgt über 1000 km. Bitte kontaktieren Sie uns für ein Angebot.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                const basePrice = getPriceForDistance(weight, distance);
+                
+                if (!basePrice || basePrice <= 0) {
+                    loadingDiv.style.display = 'none';
+                    errorDiv.textContent = '❌ Fehler: Keine gültige Preisberechnung möglich. Bitte überprüfen Sie Ihre Angaben.';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                let totalPrice = 0;
+                let actualBase = basePrice;
+                const selectedOption = equipmentSelect.options[equipmentSelect.selectedIndex];
+                if (selectedOption.textContent.includes('📦')) {
+                    actualBase = 150;
+                    totalPrice = 150 + heightSurcharge;
+                } else {
+                    totalPrice = basePrice + heightSurcharge;
+                }
+
+                const startAddr = startAddressInput.value.split(',')[0];
+                const endAddr = endAddressInput.value.split(',')[0];
+
+                document.getElementById('routeInfo').textContent = `${startAddr} → ${endAddr}`;
+                document.getElementById('distance').textContent = `${Math.round(distance)} km`;
+
+                const equipmentLabel = equipmentSelect.options[equipmentSelect.selectedIndex].text;
+                document.getElementById('weightDisplay').textContent = `${equipmentLabel.split(' - ')[0].trim()} (${weight} kg)`;
+
+                document.getElementById('basePrice').textContent = `${actualBase} €`;
+                document.getElementById('heightSurcharge').textContent = heightSurcharge > 0 ? `+ ${heightSurcharge} €` : 'Kein Zuschlag';
+                document.getElementById('totalPrice').textContent = `${totalPrice} €`;
+
+                document.getElementById('breakdownBase').textContent = `${actualBase} €`;
+                document.getElementById('breakdownHeight').textContent = heightSurcharge > 0 ? `${heightSurcharge} €` : '0 €';
+                document.getElementById('breakdownFee').textContent = selectedOption.textContent.includes('📦') ? '150 € (WJ/Wave)' : '0 €';
+                document.getElementById('breakdownTotal').textContent = `${totalPrice} €`;
+                document.getElementById('resultBreakdown').style.display = 'block';
+
+                const weightWarning = validateWeight(weight);
+                if (weightWarning) {
+                    errorDiv.textContent = weightWarning;
+                    errorDiv.style.background = '#fff3cd';
+                    errorDiv.style.color = '#856404';
+                    errorDiv.style.display = 'block';
+                }
+
+                saveFavorite(startAddressInput.value, endAddressInput.value);
+
+                loadingDiv.style.display = 'none';
+                resultBox.style.display = 'block';
+
+                resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                errorDiv.textContent = '❌ Fehler bei der Berechnung: ' + error.message + '. Bitte versuchen Sie es erneut.';
+                errorDiv.style.display = 'block';
+                console.error('Berechnungsfehler:', error);
+            }
+        });
+    </script>
+</body>
+</html>
